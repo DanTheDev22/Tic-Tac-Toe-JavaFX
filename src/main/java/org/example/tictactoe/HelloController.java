@@ -12,12 +12,6 @@ import javafx.scene.layout.HBox;
 
 public class HelloController {
 
-//    @FXML
-//    private ResourceBundle resources;
-
-//    @FXML
-//    private URL location;
-
     @FXML
     private GridPane gridPane;
 
@@ -85,17 +79,11 @@ public class HelloController {
             // Check for a winner or a draw
             if (checkWin()) {
                 statusLabel.setText("Player " + currentPlayer + " wins!");
-                startButton.setText("Restart Game");  // Change start button text to "Restart Game"
-                startButton.setVisible(true);  // Show the start button for restarting the game
-                difficultyBox.setVisible(true); // Show difficulty selection
-                isGameActive = false;  // Game is over
+                endGame();
 
             } else if (checkDraw()) {
                 statusLabel.setText("Draw!");
-                startButton.setText("Restart Game");  // Change start button text to "Restart Game"
-                startButton.setVisible(true);  // Show the start button for restarting the game
-                difficultyBox.setVisible(true); // Show difficulty selection
-                isGameActive = false;  // Game is over
+                endGame();
 
             } else {
                 currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
@@ -107,7 +95,7 @@ public class HelloController {
     }
 
     @FXML
-    void StartGame(ActionEvent event) {
+    void StartGame() {
         difficulty = Objects.requireNonNull(difficulty, "Difficulty level is not selected.");
         if (!"easy".equals(difficulty) && !"medium".equals(difficulty) && !"hard".equals(difficulty) && !"user".equals(difficulty)) {
             System.out.println("Invalid difficulty level selected.");
@@ -122,34 +110,6 @@ public class HelloController {
         statusLabel.setText("Player " + currentPlayer + "'s turn.");
 
     }
-
-//    @FXML
-//    private void initGame() {
-//        // Reset the buttons on the grid
-//        for (Node n : gridPane.getChildren()) {
-//            if (n instanceof Button) {
-//                ((Button) n).setText("");
-//                ((Button) n).setDisable(false);
-//            }
-//        }
-//
-//        // Reset the game board
-//        for (int i = 0; i < 3; i++) {
-//            for (int j = 0; j < 3; j++) {
-//                game[i][j] = '\0';
-//            }
-//        }
-//
-//        // Set the starting player
-//        currentPlayer = 'X';
-//
-//        // Update the status label
-//        statusLabel.setText("Game started! Player " + currentPlayer + "'s turn.");
-//        startButton.setVisible(false);  // Hide the start button during the game
-//        isGameActive = true;  // Game is active
-//    }
-
-
 
 
     @FXML
@@ -180,66 +140,47 @@ public class HelloController {
             int aiRow = move[0];
             int aiCol = move[1];
 
-            if (aiRow != -1 && aiCol != -1 && game[aiRow][aiCol] == '\0') {  // Ensure selected cell is empty
-                Node aiNode = findAIMove(aiRow, aiCol);
-                if (aiNode != null) {
-                    makeMove(aiNode);
-
-                    if (checkWin()) {
-                        statusLabel.setText("Player " + currentPlayer + " wins!");
-                        isGameActive = false;  // Game is over
-                        startButton.setText("Restart Game");  // Change start button text to "Restart Game"
-                        startButton.setVisible(true);  // Show the start button for restarting the game
-                        difficultyBox.setVisible(true); // Hide difficulty selection after AI wins
-                    } else if (checkDraw()) {
-                        statusLabel.setText("Draw!");
-                        isGameActive = false;  // Game is over
-                        startButton.setText("Restart Game");  // Change start button text to "Restart Game"
-                        startButton.setVisible(true);  // Show the start button for restarting the game
-                        difficultyBox.setVisible(true); // Hide difficulty selection after draw
-                    } else {
-                        currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
-                        statusLabel.setText("Player " + currentPlayer + "'s turn.");
-                    }
-                }
+            if (aiRow != -1 && aiCol != -1 && game[aiRow][aiCol] == '\0') {
+                makeMove(aiRow, aiCol);
+                updateBoardAfterAIMove();
             } else {
                 System.out.println("No valid move found for AI.");
             }
         }
     }
 
-    private Node findAIMove(int row, int col) {
+    private void updateBoardAfterAIMove() {
         for (Node n : gridPane.getChildren()) {
-            if (n instanceof Button && GridPane.getRowIndex(n) != null && GridPane.getColumnIndex(n) != null
-                    && GridPane.getRowIndex(n).equals(row) && GridPane.getColumnIndex(n).equals(col)) {
-                return n;
+            if (n instanceof Button) {
+                Integer rowIndex = GridPane.getRowIndex(n);
+                Integer columnIndex = GridPane.getColumnIndex(n);
+
+                rowIndex = (rowIndex == null) ? 0 : rowIndex;
+                columnIndex = (columnIndex == null) ? 0 : columnIndex;
+
+                if (game[rowIndex][columnIndex] != '\0' && !n.isDisabled()) {
+                    ((Button) n).setText(String.valueOf(game[rowIndex][columnIndex]));
+                    n.setDisable(true);
+                }
             }
         }
-        return null;
-    }
 
-
-
-    private void makeMove(Node node) {
-            Integer row = GridPane.getRowIndex(node);
-            Integer col = GridPane.getColumnIndex(node);
-
-            // Check if row or col is null
-            if (row == null || col == null) {
-                System.out.println("Row or Column is null");
-                return;
-            }
-
-        for (Node n : gridPane.getChildren()) {
-            if (n instanceof Button && GridPane.getRowIndex(n) != null && GridPane.getColumnIndex(n) != null
-                    && GridPane.getRowIndex(n).equals(row) && GridPane.getColumnIndex(n).equals(col)) {
-                ((Button) n).setText(String.valueOf(currentPlayer));
-                n.setDisable(true);
-                game[row][col] = currentPlayer;
-                break;
-            }
+        if (checkWin()) {
+            statusLabel.setText("Player " + currentPlayer + " wins!");
+            endGame();
+        } else if (checkDraw()) {
+            statusLabel.setText("Draw!");
+            endGame();
+        } else {
+            currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
+            statusLabel.setText("Player " + currentPlayer + "'s turn.");
         }
     }
+
+    private void makeMove(int row, int col) {
+        game[row][col] = 'O';
+    }
+
 
     void resetGame() {
         // Clear the buttons on the grid
@@ -263,6 +204,13 @@ public class HelloController {
         startButton.setText("Restart Game");  // Change start button text to "Restart Game"
         startButton.setVisible(false);  // Ensure the restart button is visible
         isGameActive = true;  // Game is active again after reset
+    }
+
+    private void endGame() {
+        startButton.setText("Restart Game");
+        startButton.setVisible(true);
+        difficultyBox.setVisible(true);
+        isGameActive = false;
     }
 
 
@@ -332,10 +280,10 @@ public class HelloController {
                 if (game[i][j] == '\0') {
                     game[i][j] = player;
                     if (checkWinForPlayer(game, player)) {
-                        game[i][j] = '\0'; // Undo move
+                        game[i][j] = '\0'; // Revert the move
                         return new int[]{i, j};
                     }
-                    game[i][j] = '\0'; // Undo move
+                    game[i][j] = '\0'; // Revert the move
                 }
             }
         }
@@ -369,7 +317,7 @@ public class HelloController {
                 for (int j = 0; j < 3; j++) {
                     if (game[i][j] == '\0') {
                         game[i][j] = 'O';
-                        int moveVal = minimax(game, 0, false, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                        int moveVal = minimax(game, 0, false);
                         game[i][j] = '\0';
 
                         if (moveVal > bestVal) {
@@ -383,72 +331,64 @@ public class HelloController {
             return bestMove;
         }
 
-    int minimax(char[][] game, int depth, boolean isMax, int alpha, int beta) {
-        int score = evaluate(game);
+    int minimax(char[][] board, int depth, boolean isMax) {
+        int score = evaluate(board);
 
-        if (score == 10) {
-            return score - depth;
-        }
+        if (score == 10 || score == -10 || checkDraw()) return score;
 
-        if (score == -10) {
-            return score + depth;
-        }
-
-        if (!isMovesLeft(game)) {
-            return 0;
-        }
-
-        int best;
         if (isMax) {
-            best = Integer.MIN_VALUE;
-
+            int best = Integer.MIN_VALUE;
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
-                    if (game[i][j] == '\0') {
-                        game[i][j] = 'O';
-                        best = Math.max(best, minimax(game, depth + 1, false, alpha, beta));
-                        game[i][j] = '\0';
-                        alpha = Math.max(alpha, best);
-                        if (beta <= alpha) break;  // Alpha-Beta Pruning
+                    if (board[i][j] == '\0') {
+                        board[i][j] = 'O';
+                        best = Math.max(best, minimax(board, depth + 1, false));
+                        board[i][j] = '\0';
                     }
                 }
             }
+            return best;
         } else {
-            best = Integer.MAX_VALUE;
-
+            int best = Integer.MAX_VALUE;
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
-                    if (game[i][j] == '\0') {
-                        game[i][j] = 'X';
-                        best = Math.min(best, minimax(game, depth + 1, true, alpha, beta));
-                        game[i][j] = '\0';
-                        beta = Math.min(beta, best);
-                        if (beta <= alpha) break;  // Alpha-Beta Pruning
+                    if (board[i][j] == '\0') {
+                        board[i][j] = 'X';
+                        best = Math.min(best, minimax(board, depth + 1, true));
+                        board[i][j] = '\0';
                     }
                 }
             }
+            return best;
         }
-        return best;
     }
 
-    boolean isMovesLeft(char[][] game) {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (game[i][j] == '\0') {
-                    return true;
-                }
+    int evaluate(char[][] b) {
+        for (int row = 0; row < 3; row++) {
+            if (b[row][0] == b[row][1] && b[row][1] == b[row][2]) {
+                if (b[row][0] == 'O') return 10;
+                else if (b[row][0] == 'X') return -10;
             }
         }
-        return false;
+
+        for (int col = 0; col < 3; col++) {
+            if (b[0][col] == b[1][col] && b[1][col] == b[2][col]) {
+                if (b[0][col] == 'O') return 10;
+                else if (b[0][col] == 'X') return -10;
+            }
+        }
+
+        if (b[0][0] == b[1][1] && b[1][1] == b[2][2]) {
+            if (b[0][0] == 'O') return 10;
+            else if (b[0][0] == 'X') return -10;
+        }
+
+        if (b[0][2] == b[1][1] && b[1][1] == b[2][0]) {
+            if (b[0][2] == 'O') return 10;
+            else if (b[0][2] == 'X') return -10;
+        }
+
+        return 0;
     }
 
-    int evaluate(char[][] game) {
-        if (checkWinForPlayer(game, 'O')) {
-            return 10;
-        } else if (checkWinForPlayer(game, 'X')) {
-            return -10;
-        } else {
-            return 0;
-        }
-    }
 }
