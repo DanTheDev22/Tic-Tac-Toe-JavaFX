@@ -77,9 +77,6 @@ ________________________________________________________________________________
 **Hard:** Uses the minimax algorithm to play optimally.
 
 ______________________________________________________________________________________________________________________________
-**Known Issues 🐞**
-
-AI System: The AI system is still a work in progress. Improvements to the decision-making algorithms and performance optimizations are ongoing. Feedback and contributions are welcome!
 
 **Want to improve the game? Here's how:**
 
