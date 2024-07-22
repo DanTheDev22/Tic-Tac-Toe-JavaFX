@@ -19,7 +19,7 @@ public class HelloController {
     private Button startButton;
 
     @FXML
-    private HBox difficultyBox; // Assuming you put difficulty buttons in an HBox
+    private HBox difficultyBox;
 
     @FXML
     private Label statusLabel;
@@ -28,8 +28,8 @@ public class HelloController {
     private Label chooseDifficulty;
 
 
-    private char currentPlayer = 'X';
-    private final char[][] game = new char[3][3];
+    private char currentPlayer = 'X'; // Indicates the current player, starting with 'X'
+    private final char[][] game = new char[3][3]; // Represents the game board
     private String difficulty = "user";  // Default to user mode
     private boolean isGameActive = true;  // Flag to indicate if the game is active
 
@@ -40,13 +40,14 @@ public class HelloController {
         System.out.println("AI easy move");
     }
 
+    // AI Medium Level: Win if possible, otherwise block opponent, else random move
     @FXML
     void SetMediumLevel() {
         difficulty = "medium";
         System.out.println("AI Medium move");
     }
-    // AI Medium Level: Win if possible, otherwise block opponent, else random move
 
+    // AI Hard Level: Best move using Minimax algorithm
     @FXML
     void SetHardLevel() {
         difficulty = "hard";
@@ -59,6 +60,7 @@ public class HelloController {
         difficulty = "user"; // Set to user mode
     }
 
+    // Handles button click events for the game grid
     @FXML
     void btnClick(ActionEvent event) {
         if (!isGameActive) return;
@@ -94,6 +96,7 @@ public class HelloController {
 
     }
 
+    // Starts the game and sets up the initial state
     @FXML
     void StartGame() {
         difficulty = Objects.requireNonNull(difficulty, "Difficulty level is not selected.");
@@ -111,7 +114,7 @@ public class HelloController {
 
     }
 
-
+    // Initializes the game board and UI components
     @FXML
     void initialize() {
         if (gridPane == null) {
@@ -127,6 +130,7 @@ public class HelloController {
         chooseDifficulty.setText("Choose Difficulty:");
     }
 
+    // Executes AI move based on the selected difficulty
     private void performAIMove(String difficulty) {
         if (currentPlayer == 'O' && !"user".equals(difficulty)) {
             int[] move;
@@ -149,6 +153,7 @@ public class HelloController {
         }
     }
 
+    // Updates the game board after AI makes a move
     private void updateBoardAfterAIMove() {
         for (Node n : gridPane.getChildren()) {
             if (n instanceof Button) {
@@ -177,11 +182,12 @@ public class HelloController {
         }
     }
 
+    // Makes a move for the AI
     private void makeMove(int row, int col) {
         game[row][col] = 'O';
     }
 
-
+    // Resets the game board and internal game state
     void resetGame() {
         // Clear the buttons on the grid
         for (Node n : gridPane.getChildren()) {
@@ -206,6 +212,7 @@ public class HelloController {
         isGameActive = true;  // Game is active again after reset
     }
 
+    // Ends the game and updates the UI to reflect this
     private void endGame() {
         startButton.setText("Restart Game");
         startButton.setVisible(true);
@@ -252,16 +259,18 @@ public class HelloController {
             return true;
         }
 
-        private int[] findBestMoveEasy(char[][] game) {
-            Random random = new Random();
-            int rowIndex, columnIndex;
-            do {
-                rowIndex = random.nextInt(3);
-                columnIndex = random.nextInt(3);
-            } while (game[rowIndex][columnIndex] != '\0');
-            return new int[]{rowIndex, columnIndex};
-        }
+    // AI easy move: Random move
+    private int[] findBestMoveEasy(char[][] game) {
+        Random random = new Random();
+        int rowIndex, columnIndex;
+        do {
+            rowIndex = random.nextInt(3);
+            columnIndex = random.nextInt(3);
+        } while (game[rowIndex][columnIndex] != '\0');
+        return new int[]{rowIndex, columnIndex};
+    }
 
+    // AI medium move: Win if possible, otherwise block opponent, else random move
     int[] findBestMoveMedium(char[][] game) {
         int[] winningMove = findWinningMove(game, 'O');
         if (winningMove != null) {
@@ -274,6 +283,7 @@ public class HelloController {
         return findBestMoveEasy(game);
     }
 
+    // Find a winning move for the specified player
     int[] findWinningMove(char[][] game, char player) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -290,6 +300,7 @@ public class HelloController {
         return null;
     }
 
+    // Check if the specified player has won
     boolean checkWinForPlayer(char[][] game, char player) {
         // Check rows
         for (int i = 0; i < 3; i++) {
@@ -308,7 +319,7 @@ public class HelloController {
                 (game[0][2] == player && game[1][1] == player && game[2][0] == player);
     }
 
-        // Method for the evaluation purpose of the Minimax algorithm
+    // AI hard move: Best move using Minimax algorithm
         int[] findBestMoveHard(char[][] game) {
             int bestVal = Integer.MIN_VALUE;
             int[] bestMove = {-1, -1};
@@ -331,13 +342,15 @@ public class HelloController {
             return bestMove;
         }
 
+    // Minimax algorithm for AI decision making
     int minimax(char[][] board, int depth, boolean isMax) {
         int score = evaluate(board);
 
         if (score == 10 || score == -10 || checkDraw()) return score;
 
+        int best;
         if (isMax) {
-            int best = Integer.MIN_VALUE;
+            best = Integer.MIN_VALUE;
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     if (board[i][j] == '\0') {
@@ -347,9 +360,8 @@ public class HelloController {
                     }
                 }
             }
-            return best;
         } else {
-            int best = Integer.MAX_VALUE;
+            best = Integer.MAX_VALUE;
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     if (board[i][j] == '\0') {
@@ -359,33 +371,35 @@ public class HelloController {
                     }
                 }
             }
-            return best;
         }
+        return best;
     }
 
-    int evaluate(char[][] b) {
+    // Evaluate the board state for the Minimax algorithm
+    int evaluate(char[][] character) {
+        // Check rows
         for (int row = 0; row < 3; row++) {
-            if (b[row][0] == b[row][1] && b[row][1] == b[row][2]) {
-                if (b[row][0] == 'O') return 10;
-                else if (b[row][0] == 'X') return -10;
+            if (character[row][0] == character[row][1] && character[row][1] == character[row][2]) {
+                if (character[row][0] == 'O') return 10;
+                else if (character[row][0] == 'X') return -10;
             }
         }
-
+        // Check columns
         for (int col = 0; col < 3; col++) {
-            if (b[0][col] == b[1][col] && b[1][col] == b[2][col]) {
-                if (b[0][col] == 'O') return 10;
-                else if (b[0][col] == 'X') return -10;
+            if (character[0][col] == character[1][col] && character[1][col] == character[2][col]) {
+                if (character[0][col] == 'O') return 10;
+                else if (character[0][col] == 'X') return -10;
             }
         }
-
-        if (b[0][0] == b[1][1] && b[1][1] == b[2][2]) {
-            if (b[0][0] == 'O') return 10;
-            else if (b[0][0] == 'X') return -10;
+        // Check diagonals
+        if (character[0][0] == character[1][1] && character[1][1] == character[2][2]) {
+            if (character[0][0] == 'O') return 10;
+            else if (character[0][0] == 'X') return -10;
         }
 
-        if (b[0][2] == b[1][1] && b[1][1] == b[2][0]) {
-            if (b[0][2] == 'O') return 10;
-            else if (b[0][2] == 'X') return -10;
+        if (character[0][2] == character[1][1] && character[1][1] == character[2][0]) {
+            if (character[0][2] == 'O') return 10;
+            else if (character[0][2] == 'X') return -10;
         }
 
         return 0;
